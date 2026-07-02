@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-feature-settings: "cv11", "ss01";
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d303c;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #42465470;
+}
+
+.panel {
+  @apply rounded-xl2 border border-white/5 bg-base-850 shadow-panel;
+}
+
+.skeleton {
+  @apply relative overflow-hidden bg-base-800;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  background-size: 400px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
