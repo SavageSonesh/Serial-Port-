@@ -1,0 +1,29 @@
+# Python
+backend/venv/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Local data (created at runtime, never checked in)
+uploads/*
+!uploads/.gitkeep
+projects/*
+!projects/.gitkeep
+exports/*
+!exports/.gitkeep
+temp/*
+!temp/.gitkeep
+models/*
+!models/.gitkeep
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
