@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets — never commit these
+.env
+backend/.env
+frontend/.env
+
+# Local database and backups
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/data/
+backups/
+
+# Build output
+backend/dist/
+frontend/dist/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store

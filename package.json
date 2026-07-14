@@ -1,0 +1,26 @@
+{
+  "name": "trendradar-local",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TrendRadar Local — private, local-only social media trend research dashboard",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "setup": "npm run db:setup && npm run db:seed",
+    "db:setup": "npm run generate --workspace=backend && npm run db:push --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend",
+    "db:reset": "npm run db:reset --workspace=backend",
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend",
+    "backup": "npm run backup --workspace=backend",
+    "restore": "npm run restore --workspace=backend",
+    "test": "npm run test --workspace=backend",
+    "typecheck": "npm run typecheck --workspace=backend && npm run typecheck --workspace=frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

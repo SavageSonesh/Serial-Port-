@@ -1,0 +1,204 @@
+// TrendRadar Local — SQLite schema
+// All data lives in this local file. No cloud storage.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Platform {
+  id         String      @id // "tiktok" | "instagram" | "youtube" | "google-trends"
+  name       String
+  trendItems TrendItem[]
+  creators   Creator[]
+}
+
+model Creator {
+  id            Int         @id @default(autoincrement())
+  handle        String
+  displayName   String?
+  platformId    String
+  platform      Platform    @relation(fields: [platformId], references: [id])
+  followerCount Float?
+  profileUrl    String?
+  trendItems    TrendItem[]
+
+  @@unique([handle, platformId])
+}
+
+model Niche {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  isDefault  Boolean     @default(false)
+  trendItems TrendItem[]
+  savedIdeas SavedIdea[]
+}
+
+model Hashtag {
+  id    Int                @id @default(autoincrement())
+  tag   String             @unique
+  items TrendItemHashtag[]
+}
+
+model Audio {
+  id    Int         @id @default(autoincrement())
+  name  String      @unique
+  items TrendItem[]
+}
+
+model TrendItem {
+  id                  Int                @id @default(autoincrement())
+  urlKey              String?            @unique // normalized URL used for duplicate detection
+  url                 String?
+  title               String
+  description         String?
+  thumbnailUrl        String?
+  platformId          String
+  platform            Platform           @relation(fields: [platformId], references: [id])
+  creatorId           Int?
+  creator             Creator?           @relation(fields: [creatorId], references: [id])
+  // Metrics are Float so very large counts never overflow. Null = unknown, never rejected.
+  views               Float?
+  likes               Float?
+  comments            Float?
+  shares              Float?
+  followerCount       Float?
+  publishedAt         DateTime?
+  format              String? // short-video | reel | video | image | other
+  country             String?
+  language            String?
+  audioId             Int?
+  audio               Audio?             @relation(fields: [audioId], references: [id])
+  nicheId             Int?
+  niche               Niche?             @relation(fields: [nicheId], references: [id])
+  notes               String?
+  saved               Boolean            @default(false)
+  monitoring          Boolean            @default(false)
+  isSample            Boolean            @default(false)
+  // Computed and cached on every write; breakdown powers the score tooltip.
+  trendScore          Float              @default(0)
+  engagementRate      Float?
+  engagementEstimated Boolean            @default(false)
+  viewsPerHour        Float?
+  crossPlatformCount  Int                @default(1)
+  scoreBreakdown      String? // JSON: per-factor values and weights
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  hashtags            TrendItemHashtag[]
+  snapshots           MetricSnapshot[]
+  savedIdeas          SavedIdea[]
+}
+
+model TrendItemHashtag {
+  trendItemId Int
+  hashtagId   Int
+  trendItem   TrendItem @relation(fields: [trendItemId], references: [id], onDelete: Cascade)
+  hashtag     Hashtag   @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([trendItemId, hashtagId])
+}
+
+// History of metrics over time — updating a video's views tomorrow
+// preserves today's numbers here instead of overwriting them.
+model MetricSnapshot {
+  id          Int       @id @default(autoincrement())
+  trendItemId Int
+  trendItem   TrendItem @relation(fields: [trendItemId], references: [id], onDelete: Cascade)
+  views       Float?
+  likes       Float?
+  comments    Float?
+  shares      Float?
+  trendScore  Float?
+  capturedAt  DateTime  @default(now())
+}
+
+model SavedIdea {
+  id                   Int             @id @default(autoincrement())
+  title                String
+  hook                 String?
+  caption              String?
+  hashtags             String? // space-separated
+  format               String?
+  duration             String?
+  visualStructure      String?
+  callToAction         String?
+  angle                String?
+  rationale            String?
+  category             String?
+  notes                String?
+  status               String          @default("idea") // idea | researching | script-ready | ready-to-record | recorded | editing | scheduled | published | archived
+  priority             String          @default("medium") // low | medium | high
+  intendedPlatform     String?
+  plannedRecordingDate DateTime?
+  recorded             Boolean         @default(false)
+  edited               Boolean         @default(false)
+  posted               Boolean         @default(false)
+  publishedUrl         String?
+  nicheId              Int?
+  niche                Niche?          @relation(fields: [nicheId], references: [id])
+  sourceTrendId        Int?
+  sourceTrend          TrendItem?      @relation(fields: [sourceTrendId], references: [id])
+  isSample             Boolean         @default(false)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tags                 IdeaTagOnIdea[]
+}
+
+model IdeaTag {
+  id    Int             @id @default(autoincrement())
+  name  String          @unique
+  ideas IdeaTagOnIdea[]
+}
+
+model IdeaTagOnIdea {
+  ideaId Int
+  tagId  Int
+  idea   SavedIdea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag    IdeaTag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, tagId])
+}
+
+model DataSource {
+  id         Int       @id @default(autoincrement())
+  type       String // youtube | google-trends | tiktok | instagram
+  name       String
+  enabled    Boolean   @default(true)
+  configJson String? // JSON blob of non-secret config (secrets live in .env only)
+  lastRunAt  DateTime?
+  lastStatus String? // ok | error | blocked
+  lastError  String?
+}
+
+model SearchQuery {
+  id          Int       @id @default(autoincrement())
+  query       String
+  platformId  String?
+  country     String?
+  timeRange   String?
+  category    String?
+  isWatchlist Boolean   @default(false)
+  lastRunAt   DateTime?
+  resultJson  String?
+  createdAt   DateTime  @default(now())
+}
+
+model AppSetting {
+  key   String @id
+  value String
+}
+
+model ImportJob {
+  id            Int      @id @default(autoincrement())
+  type          String // url | urls | manual | csv | json
+  status        String   @default("pending") // pending | completed | partial | failed
+  totalItems    Int      @default(0)
+  importedItems Int      @default(0)
+  skippedItems  Int      @default(0)
+  errorsJson    String? // JSON array of per-row error messages
+  createdAt     DateTime @default(now())
+}
