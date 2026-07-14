@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens (RGB triplets consumed by tailwind.config.js) */
+:root {
+  color-scheme: light;
+  --surface-0: 249 249 247;
+  --surface-1: 255 255 255;
+  --surface-2: 244 244 246;
+  --surface-3: 232 233 238;
+  --ink-1: 17 17 20;
+  --ink-2: 82 85 96;
+  --ink-3: 137 139 148;
+
+  /* Chart series (validated categorical palette, light steps) */
+  --series-tiktok: #2a78d6;
+  --series-instagram: #4a3aa7;
+  --series-youtube: #e34948;
+  --series-google-trends: #eda100;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #898781;
+  --chart-accent: #2a78d6;
+}
+
+.dark {
+  color-scheme: dark;
+  --surface-0: 11 12 16;
+  --surface-1: 17 18 24;
+  --surface-2: 24 26 34;
+  --surface-3: 36 39 50;
+  --ink-1: 237 237 240;
+  --ink-2: 166 169 181;
+  --ink-3: 118 122 135;
+
+  /* Same hues stepped for the dark surface */
+  --series-tiktok: #3987e5;
+  --series-instagram: #9085e9;
+  --series-youtube: #e66767;
+  --series-google-trends: #c98500;
+  --chart-grid: #2c2c34;
+  --chart-axis: #898781;
+  --chart-accent: #3987e5;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-0 text-ink-1 antialiased;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Subtle scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--surface-3)) transparent;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.55; }
+  50% { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+.skeleton {
+  @apply rounded-lg bg-surface-3;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Recharts text should wear ink tokens, not series colors */
+.recharts-text {
+  fill: rgb(var(--ink-3));
+  font-size: 11px;
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--chart-grid);
+}
